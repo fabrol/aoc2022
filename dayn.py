@@ -14,8 +14,10 @@ def read_input(filename):
 
 def run_part_a(filename):
     fp = open(filename, 'r')
-    for l in fp.readlines():
-        l = l.strip()
+    while True:
+        l = fp.readline().strip()
+        if len(l) == 0:
+            break
     pass
 
 
