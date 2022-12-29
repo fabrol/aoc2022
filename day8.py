@@ -101,43 +101,44 @@ def run_part_b(filename):
     rows = len(g)
     cols = len(g[0])
 
-    # val, idx
-    top = [[(-1, -1)]*cols for _ in range(rows)]
-    left = [[(-1, -1)]*cols for _ in range(rows)]
-    right = [[(-1, -1)]*cols for _ in range(rows)]
-    bottom = [[(-1, -1)]*cols for _ in range(rows)]
+    # [-1,-1,..] array of size 10 showing the last location in that direction for val = idx
+    num_height = 10
+    top = [[[-1]*num_height for _ in range(cols)] for _ in range(rows)]
+    left = [[[-1]*num_height for _ in range(cols)] for _ in range(rows)]
+    right = [[[-1]*num_height for _ in range(cols)] for _ in range(rows)]
+    bottom = [[[-1]*num_height for _ in range(cols)] for _ in range(rows)]
 
     # Iterate over the graph 4 times, storing state for each direction each time
     # Reuse indices because we have a square grid
     for r in range(rows):
-        cur_max_left = (-1, -1)
-        cur_max_right = (-1, -1)
-        cur_max_top = (-1, -1)
-        cur_max_bottom = (-1, -1)
         for c in range(cols):
             # left to right
             val = g[r][c]
-            if val >= cur_max_left[0]:  # This >= vs > is tricky
-                cur_max_left = (val, (r, c))
-            left[r][c] = cur_max_left
+            if c > 0:
+                left[r][c] = left[r][c-1].copy()
+            if c > left[r][c][val]:
+                left[r][c][val] = c
 
             # right to left
             val = g[r][cols - c - 1]
-            if val >= cur_max_right[0]:
-                cur_max_right = (val, (r, cols-c-1))
-            right[r][cols - c - 1] = cur_max_right
+            if cols - c - 1 < cols - 1:
+                right[r][cols - c - 1] = right[r][cols - c].copy()
+            if (cols - c - 1) < right[r][cols - c - 1][val]:
+                right[r][cols - c - 1] = cols-c-1
 
             # top to bottom
             val = g[c][r]
-            if val >= cur_max_top[0]:
-                cur_max_top = (val, (c, r))
-            top[c][r] = cur_max_top
+            if c > 0:
+                top[c - 1][r] = top[c][r].copy()
+            if r > top[c][r][val]:
+                top[c][r][val] = r
 
             # bottom to top
             val = g[cols - c - 1][r]
-            if val >= cur_max_bottom[0]:
-                cur_max_bottom = (val, (cols-c-1, r))
-            bottom[cols - c - 1][r] = cur_max_bottom
+            if cols - c - 1 < cols - 1:
+                bottom[cols-c-1][r] = bottom[cols-c][r].copy()
+            if r < bottom[cols-c-1][r][val]:
+                bottom[cols-c-1][r][val] = r
 
     print_graph(g)
     print_graph(left)
