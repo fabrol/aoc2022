@@ -103,10 +103,11 @@ def run_part_b(filename):
 
     # [-1,-1,..] array of size 10 showing the last location in that direction for val = idx
     num_height = 10
-    top = [[[-1]*num_height for _ in range(cols)] for _ in range(rows)]
     left = [[[-1]*num_height for _ in range(cols)] for _ in range(rows)]
-    right = [[[-1]*num_height for _ in range(cols)] for _ in range(rows)]
-    bottom = [[[-1]*num_height for _ in range(cols)] for _ in range(rows)]
+    right = [
+        [[cols+1]*num_height for _ in range(cols)] for _ in range(rows)]
+    top = [[[-1]*num_height for _ in range(cols)] for _ in range(rows)]
+    bottom = [[[rows+1]*num_height for _ in range(cols)] for _ in range(rows)]
 
     # Iterate over the graph 4 times, storing state for each direction each time
     # Reuse indices because we have a square grid
@@ -115,30 +116,30 @@ def run_part_b(filename):
             # left to right
             val = g[r][c]
             if c > 0:
-                left[r][c] = left[r][c-1].copy()
+                left[r][c] = (left[r][c-1]).copy()
             if c > left[r][c][val]:
                 left[r][c][val] = c
 
             # right to left
             val = g[r][cols - c - 1]
             if cols - c - 1 < cols - 1:
-                right[r][cols - c - 1] = right[r][cols - c].copy()
+                right[r][cols - c - 1] = (right[r][cols - c]).copy()
             if (cols - c - 1) < right[r][cols - c - 1][val]:
-                right[r][cols - c - 1] = cols-c-1
+                right[r][cols - c - 1][val] = cols-c-1
 
             # top to bottom
             val = g[c][r]
             if c > 0:
-                top[c - 1][r] = top[c][r].copy()
-            if r > top[c][r][val]:
-                top[c][r][val] = r
+                top[c][r] = top[c-1][r].copy()
+            if c > top[c][r][val]:
+                top[c][r][val] = c
 
             # bottom to top
             val = g[cols - c - 1][r]
             if cols - c - 1 < cols - 1:
                 bottom[cols-c-1][r] = bottom[cols-c][r].copy()
-            if r < bottom[cols-c-1][r][val]:
-                bottom[cols-c-1][r][val] = r
+            if cols - c - 1 < bottom[cols-c-1][r][val]:
+                bottom[cols-c-1][r][val] = cols - c - 1
 
     print_graph(g)
     print_graph(left)
