@@ -109,9 +109,9 @@ def run_part_b(filename):
     num_height = 10
     left = [[[-1]*num_height for _ in range(cols)] for _ in range(rows)]
     right = [
-        [[cols+1]*num_height for _ in range(cols)] for _ in range(rows)]
+        [[cols]*num_height for _ in range(cols)] for _ in range(rows)]
     top = [[[-1]*num_height for _ in range(cols)] for _ in range(rows)]
-    bottom = [[[rows+1]*num_height for _ in range(cols)] for _ in range(rows)]
+    bottom = [[[rows]*num_height for _ in range(cols)] for _ in range(rows)]
 
     # Iterate over the graph 4 times, storing state for each direction each time
     # Reuse indices because we have a square grid
@@ -156,9 +156,8 @@ def run_part_b(filename):
         for c in range(cols):
             val = g[r][c]
 
-            if c == 0:
-                visible = 0
-            else:
+            visible = 0
+            if c > 0:
                 ref = left[r][c-1]  # this is out of bounds by wrapping around
                 min_so_far = None  # Assume you can go all the way out
                 for ht in range(val, 10):
@@ -170,14 +169,52 @@ def run_part_b(filename):
 
                 if not min_so_far:
                     min_so_far = 0
-                visible = (c - min_so_far)
+                #visible += (c - min_so_far)
 
-                '''
-                for ht in range(9, val-1, -1):
+            # Right to left
+            if c < cols - 1:
+                ref = right[r][c+1]
+                max_so_far = None  # Assume you can go all the way out
+
+                for ht in range(val, 10):
+                    if ref[ht] != cols:
+                        if max_so_far == None:
+                            max_so_far = ref[ht]
+                        else:
+                            max_so_far = min(max_so_far, ref[ht])
+
+                if not max_so_far:
+                    max_so_far = cols - 1
+                #visible += (max_so_far - (c))
+
+            # top to borrom
+            if r > 0:
+                ref = top[r-1][c]
+                min_so_far = None  # Assume you can go all the way out
+                for ht in range(val, 10):
                     if ref[ht] != -1:
-                        min_so_far = ref[ht]
-                        break  # Highest existent value >= decides
-                '''
+                        if min_so_far == None:
+                            min_so_far = ref[ht]
+                        else:
+                            min_so_far = max(min_so_far, ref[ht])
+                if not min_so_far:
+                    min_so_far = 0
+                #visible += (r - min_so_far)
+
+            if r < rows - 1:
+                ref = bottom[r+1][c]
+                max_so_far = None  # Assume you can go all the way out
+
+                for ht in range(val, 10):
+                    if ref[ht] != cols:
+                        if max_so_far == None:
+                            max_so_far = ref[ht]
+                        else:
+                            max_so_far = min(max_so_far, ref[ht])
+
+                if not max_so_far:
+                    max_so_far = rows - 1
+                visible += (max_so_far - r)
             '''
             if c > 0 and val > g[r][c-1]:
                 if val > left[r][c-1][0]:
