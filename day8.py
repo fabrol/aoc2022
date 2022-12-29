@@ -155,7 +155,29 @@ def run_part_b(filename):
     for r in range(rows):
         for c in range(cols):
             val = g[r][c]
-            visible = 1
+
+            if c == 0:
+                visible = 0
+            else:
+                ref = left[r][c-1]  # this is out of bounds by wrapping around
+                min_so_far = None  # Assume you can go all the way out
+                for ht in range(val, 10):
+                    if ref[ht] != -1:
+                        if min_so_far == None:
+                            min_so_far = ref[ht]
+                        else:
+                            min_so_far = max(min_so_far, ref[ht])
+
+                if not min_so_far:
+                    min_so_far = 0
+                visible = (c - min_so_far)
+
+                '''
+                for ht in range(9, val-1, -1):
+                    if ref[ht] != -1:
+                        min_so_far = ref[ht]
+                        break  # Highest existent value >= decides
+                '''
             '''
             if c > 0 and val > g[r][c-1]:
                 if val > left[r][c-1][0]:
@@ -163,13 +185,11 @@ def run_part_b(filename):
                 else:
                     visible += (c - left[r][c][1][1])
                 #visible += (c - left[r][c-1][1][1])
-            '''
             if c < cols-1 and val > g[r][c+1]:
                 if val > right[r][c+1][0]:
                     visible += (cols - 1 - c)
                 else:
                     visible += (right[r][c+1][1][1] - c)
-            '''
             if r > 0 and val >= top[r-1][c][0]:
                 visible += (r - top[r-1][c][1][0])
             if r < rows - 1 and val >= bottom[r+1][c][0]:
