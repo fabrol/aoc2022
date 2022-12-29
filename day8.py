@@ -24,9 +24,13 @@ def print_graph(grid, visible=None):
         s = ""
         for col in range(len(grid[0])):
             if visible and (row, col) in visible:
-                s += f"\x1b[31;20m{grid[row][col]}\x1b[0m"
+                s += f"\x1b[31;20m{grid[row][col]:2d}\x1b[0m, "
             else:
-                s += str(grid[row][col])
+                if type(grid[row][col]) == list:
+                    res = ', '.join(f"{x:2d}" for x in grid[row][col])
+                    s += '[' + res + ']'
+                else:
+                    s += f"{grid[row][col]:2d}, "
         logging.debug(s)
     logging.debug('\n')
 
