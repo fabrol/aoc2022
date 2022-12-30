@@ -99,6 +99,20 @@ def run_part_a(filename):
     return len(visible)
 
 
+def find_next_highest(val, next_array, forward_pass, default_val, max_height=10):
+    next_so_far = None
+    for ht in range(val, max_height):
+        if next_array[ht] != default_val:
+            if next_so_far == None:
+                next_so_far = next_array[ht]
+            else:
+                if forward_pass:
+                    next_so_far = max(next_so_far, next_array[ht])
+                else:
+                    next_so_far = min(next_so_far, next_array[ht])
+    return next_so_far
+
+
 def run_part_b(filename):
     lines = read_input(filename)
     g = create_graph(lines)
@@ -156,68 +170,39 @@ def run_part_b(filename):
         for c in range(cols):
             val = g[r][c]
 
-            if c ==0 or r ==0 or c == cols-1 or r== rows-1:
+            if c == 0 or r == 0 or c == cols-1 or r == rows-1:
                 visible = 0
             else:
                 visible = 1
-            if c > 0:
-                ref = left[r][c-1]  # this is out of bounds by wrapping around
-                min_so_far = None  # Assume you can go all the way out
-                for ht in range(val, 10):
-                    if ref[ht] != -1:
-                        if min_so_far == None:
-                            min_so_far = ref[ht]
-                        else:
-                            min_so_far = max(min_so_far, ref[ht])
 
-                if not min_so_far:
-                    min_so_far = 0
-                visible *= (c - min_so_far)
+            if c > 0:
+                next_element = find_next_highest(val, left[r][c-1], True, -1)
+                if not next_element:
+                    next_element = 0
+                visible *= (c - next_element)
 
             # Right to left
             if c < cols - 1:
-                ref = right[r][c+1]
-                max_so_far = None  # Assume you can go all the way out
+                next_element = find_next_highest(
+                    val, right[r][c+1], False, cols)
 
-                for ht in range(val, 10):
-                    if ref[ht] != cols:
-                        if max_so_far == None:
-                            max_so_far = ref[ht]
-                        else:
-                            max_so_far = min(max_so_far, ref[ht])
-
-                if not max_so_far:
-                    max_so_far = cols - 1
-                visible *= (max_so_far - (c))
+                if not next_element:
+                    next_element = cols - 1
+                visible *= (next_element - (c))
 
             # top to borrom
             if r > 0:
-                ref = top[r-1][c]
-                min_so_far = None  # Assume you can go all the way out
-                for ht in range(val, 10):
-                    if ref[ht] != -1:
-                        if min_so_far == None:
-                            min_so_far = ref[ht]
-                        else:
-                            min_so_far = max(min_so_far, ref[ht])
-                if not min_so_far:
-                    min_so_far = 0
-                visible *= (r - min_so_far)
+                next_element = find_next_highest(val, top[r-1][c], True, -1)
+                if not next_element:
+                    next_element = 0
+                visible *= (r - next_element)
 
             if r < rows - 1:
-                ref = bottom[r+1][c]
-                max_so_far = None  # Assume you can go all the way out
+                next_element = find_next_highest(val, bottom[r+1][c], False, cols)
+                if not next_element:
+                    next_element = rows - 1
+                visible *= (next_element - r)
 
-                for ht in range(val, 10):
-                    if ref[ht] != cols:
-                        if max_so_far == None:
-                            max_so_far = ref[ht]
-                        else:
-                            max_so_far = min(max_so_far, ref[ht])
-
-                if not max_so_far:
-                    max_so_far = rows - 1
-                visible *= (max_so_far - r)
             res[r][c] = visible
 
     print_graph(res)
