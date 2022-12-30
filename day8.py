@@ -156,7 +156,10 @@ def run_part_b(filename):
         for c in range(cols):
             val = g[r][c]
 
-            visible = 0
+            if c ==0 or r ==0 or c == cols-1 or r== rows-1:
+                visible = 0
+            else:
+                visible = 1
             if c > 0:
                 ref = left[r][c-1]  # this is out of bounds by wrapping around
                 min_so_far = None  # Assume you can go all the way out
@@ -169,7 +172,7 @@ def run_part_b(filename):
 
                 if not min_so_far:
                     min_so_far = 0
-                #visible += (c - min_so_far)
+                visible *= (c - min_so_far)
 
             # Right to left
             if c < cols - 1:
@@ -185,7 +188,7 @@ def run_part_b(filename):
 
                 if not max_so_far:
                     max_so_far = cols - 1
-                #visible += (max_so_far - (c))
+                visible *= (max_so_far - (c))
 
             # top to borrom
             if r > 0:
@@ -199,7 +202,7 @@ def run_part_b(filename):
                             min_so_far = max(min_so_far, ref[ht])
                 if not min_so_far:
                     min_so_far = 0
-                #visible += (r - min_so_far)
+                visible *= (r - min_so_far)
 
             if r < rows - 1:
                 ref = bottom[r+1][c]
@@ -214,29 +217,11 @@ def run_part_b(filename):
 
                 if not max_so_far:
                     max_so_far = rows - 1
-                visible += (max_so_far - r)
-            '''
-            if c > 0 and val > g[r][c-1]:
-                if val > left[r][c-1][0]:
-                    visible += (c-1)
-                else:
-                    visible += (c - left[r][c][1][1])
-                #visible += (c - left[r][c-1][1][1])
-            if c < cols-1 and val > g[r][c+1]:
-                if val > right[r][c+1][0]:
-                    visible += (cols - 1 - c)
-                else:
-                    visible += (right[r][c+1][1][1] - c)
-            if r > 0 and val >= top[r-1][c][0]:
-                visible += (r - top[r-1][c][1][0])
-            if r < rows - 1 and val >= bottom[r+1][c][0]:
-                visible += (bottom[r+1][c][1][0] - r)
-            '''
-
+                visible *= (max_so_far - r)
             res[r][c] = visible
 
     print_graph(res)
-    return len(visible)
+    return max([max(r) for r in res])
 
 
 def test_part_a():
