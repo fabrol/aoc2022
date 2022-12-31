@@ -50,11 +50,39 @@ def update_T(positions: Tuple[int, int]):
     else:
         to_move = FOLLOW_MAP_T_MIN_H[relative_offset]
         t_pos = h_pos + to_move
-    logging.debug(f"Moving {positions} using {relative_offset}:{to_move} to {(h_pos, t_pos)}")
+    logging.debug(
+        f"Moving {positions} using {relative_offset}:{to_move} to {(h_pos, t_pos)}")
     return (h_pos, t_pos)
 
 
 def run_part_a(filename):
+    movements = read_input(filename)
+
+    # Init grid
+    PositionType = Tuple[int, int]
+    pos: PositionType = (0, 0)  # (H, T)
+    t_visited = set()
+
+    for m in movements:
+        dir, amt = m.split()
+        dir_delta = DIR_MAP[dir]
+        new_pos = pos
+
+        for _ in range(int(amt)):
+            logging.debug(new_pos)
+            t_visited.add(new_pos[1])
+
+            net_new_pos = update_T((new_pos[0] + dir_delta, new_pos[1]))
+            new_pos = net_new_pos
+
+        t_visited.add(new_pos[1])
+        pos = new_pos
+
+    logging.debug(new_pos)
+    return len(t_visited)
+
+
+def run_part_b(filename):
     movements = read_input(filename)
 
     # Init grid and cache
@@ -83,11 +111,6 @@ def run_part_a(filename):
         pos = new_pos
 
     return len(t_visited)
-
-
-def run_part_b(filename):
-    fp = open(filename, 'r')
-    pass
 
 
 def test_part_a():
