@@ -1,6 +1,7 @@
-from collections import defaultdict
 from distutils.log import debug
-from typing import Counter, Dict, List, Tuple
+import pprint
+from re import S
+from typing import Counter, DefaultDict, Dict, List, Tuple
 import logging
 import sys
 import itertools
@@ -50,8 +51,8 @@ def update_T(positions: Tuple[int, int]):
     else:
         to_move = FOLLOW_MAP_T_MIN_H[relative_offset]
         t_pos = h_pos + to_move
-    logging.debug(
-        f"Moving {positions} using {relative_offset}:{to_move} to {(h_pos, t_pos)}")
+    # logging.debug(
+    #    f"Moving {positions} using {relative_offset}:{to_move} to {(h_pos, t_pos)}")
     return (h_pos, t_pos)
 
 
@@ -59,8 +60,7 @@ def run_part_a(filename):
     movements = read_input(filename)
 
     # Init grid
-    PositionType = Tuple[int, int]
-    pos: PositionType = (0, 0)  # (H, T)
+    pos= (0, 0)  # (H, T)
     t_visited = set()
 
     for m in movements:
@@ -86,30 +86,58 @@ def run_part_b(filename):
     movements = read_input(filename)
 
     # Init grid and cache
-    PositionType = Tuple[int, int]
-    cache: Dict[Tuple[PositionType, Tuple[str, int]], PositionType] = {}
-    pos: PositionType = (0, 0)  # (H, T)
+    pos = (0,0)
+    
+    PositionsType = Tuple[int, int]
+    #pos: PositionType = [(0)]*10  # (H, 1,2,...9)
     t_visited = set()
+    # Relative pos(t - h), (dir, amt) -> Relative pos
+    cache: Dict[Tuple[PositionsType, Tuple[str, int]],
+                PositionsType] = {}
 
+    hits = 0
     for m in movements:
         dir, amt = m.split()
+        amt = int(amt)
         dir_delta = DIR_MAP[dir]
         new_pos = pos
 
-        # TODO: Add in use of the cache, might have to store away all t_visited along the way
-        for step in range(1, int(amt)+1):
-            logging.debug(new_pos)
-            t_visited.add(new_pos[1])
-            # Update H (Can be collapsed with call to update T)
-            temp_pos = (new_pos[0] + dir_delta, new_pos[1])
+        # pos A, Dir, 10 -> check for any amount < amt in dir and move by that much. if none, move by 1
+        while amt > 0:
+            source = (new_pos, dir)
+            if source not in cache:
+                cache[source] = []
+            jump = None
 
-            net_new_pos = update_T(temp_pos)
-            new_pos = net_new_pos
+            # Replect with bisect and sorted array
+            for (dist, nnp) in sorted(cache[source], reverse=True):
+                if dist <= amt:
+                    jump = (dist, nnp)
+                    hits += 1
+                    break
+
+            if jump:
+                # We have a jump in the cache
+                logging.debug(f"Trying to jump {jump} {source}")
+                new_pos = jump[1]
+                amt -= jump[0]
+            else:
+                for _ in range(int(amt)):
+                    logging.debug(new_pos)
+                    t_visited.add(new_pos[1])
+
+                    net_new_pos = update_T(
+                        (new_pos[0] + dir_delta, new_pos[1]))
+                    new_pos = net_new_pos
+                cache[source].append((amt, net_new_pos))
+                amt = 0
 
         t_visited.add(new_pos[1])
-        logging.debug(new_pos)
         pos = new_pos
 
+    logging.debug(new_pos)
+    # logging.debug(pprint.pformat(cache))
+    logging.debug(f"Size of cache:{len(cache)}, Hits:{hits}")
     return len(t_visited)
 
 
@@ -121,14 +149,15 @@ def test_part_a():
 
 
 def test_part_b():
-    expected = 5353
+    expected = 13
     actual = run_part_b('test9.in')
 
     assert actual == expected, f'{actual} and we wanted {expected}'
 
 
+'''
 test_part_a()
 print(f"Part A: {run_part_a('day9.in')}")
-
+'''
 test_part_b()
 print(f"Part B: {run_part_b('day9.in')}")
