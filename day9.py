@@ -60,7 +60,7 @@ def run_part_a(filename):
     movements = read_input(filename)
 
     # Init grid
-    pos= (0, 0)  # (H, T)
+    pos = (0, 0)  # (H, T)
     t_visited = set()
 
     for m in movements:
@@ -82,55 +82,65 @@ def run_part_a(filename):
     return len(t_visited)
 
 
+def move_head_tail_pair(head_pos, tail_pos, dir, amt, cache, visited):
+    new_pos = (head_pos, tail_pos)
+    while amt > 0:
+        source = (new_pos, dir)
+        if source not in cache:
+            cache[source] = []
+        jump = None
+
+        # Replect with bisect and sorted array
+        for (dist, nnp) in sorted(cache[source], reverse=True):
+            if dist <= amt:
+                jump = (dist, nnp)
+                #hits += 1
+                break
+
+        if jump:
+            # We have a jump in the cache
+            logging.debug(f"Trying to jump {jump} {source}")
+            new_pos = jump[1]
+            amt -= jump[0]
+        else:
+            for _ in range(int(amt)):
+                logging.debug(new_pos)
+                visited.add(new_pos[1])
+
+                net_new_pos = update_T(
+                    (new_pos[0] + DIR_MAP[dir], new_pos[1]))
+                new_pos = net_new_pos
+            cache[source].append((amt, net_new_pos))
+            amt = 0
+
+    return new_pos
+
+
 def run_part_b(filename):
     movements = read_input(filename)
 
     # Init grid and cache
-    pos = (0,0)
-    
+    pos = (0, 0)
+    hits = None
+
     PositionsType = Tuple[int, int]
-    #pos: PositionType = [(0)]*10  # (H, 1,2,...9)
+    # pos: PositionsType = [0]*10  # (H, 1,2,...9)
     t_visited = set()
-    # Relative pos(t - h), (dir, amt) -> Relative pos
+
+    # (Abs pos, dir) -> [(amt, final_pos)] (Only for knot over knot repeats. can go further and make cache for relative positions)
     cache: Dict[Tuple[PositionsType, Tuple[str, int]],
                 PositionsType] = {}
 
-    hits = 0
     for m in movements:
         dir, amt = m.split()
-        amt = int(amt)
+        net_amt = int(amt)
         dir_delta = DIR_MAP[dir]
-        new_pos = pos
+        # for knot_i in range(0, len(pos)-1, 1):
+        #    lagging_pos = (new_pos[knot_i], pos[knot_i+1])
+        #    amt = net_amt
 
-        # pos A, Dir, 10 -> check for any amount < amt in dir and move by that much. if none, move by 1
-        while amt > 0:
-            source = (new_pos, dir)
-            if source not in cache:
-                cache[source] = []
-            jump = None
-
-            # Replect with bisect and sorted array
-            for (dist, nnp) in sorted(cache[source], reverse=True):
-                if dist <= amt:
-                    jump = (dist, nnp)
-                    hits += 1
-                    break
-
-            if jump:
-                # We have a jump in the cache
-                logging.debug(f"Trying to jump {jump} {source}")
-                new_pos = jump[1]
-                amt -= jump[0]
-            else:
-                for _ in range(int(amt)):
-                    logging.debug(new_pos)
-                    t_visited.add(new_pos[1])
-
-                    net_new_pos = update_T(
-                        (new_pos[0] + dir_delta, new_pos[1]))
-                    new_pos = net_new_pos
-                cache[source].append((amt, net_new_pos))
-                amt = 0
+        new_pos = move_head_tail_pair(
+            pos[0], pos[1], dir, int(amt), cache, t_visited)
 
         t_visited.add(new_pos[1])
         pos = new_pos
